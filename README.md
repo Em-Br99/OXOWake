@@ -2,7 +2,12 @@
 
 Ein Lichtwecker, der morgens einen Sonnenaufgang simuliert: Vor der Weckzeit werden die Philips-Hue-Lampen im Schlafzimmer langsam heller, zur Weckzeit piepst die OXOCard, bis man sie per Joystick abstellt.
 
-Schulprojekt an der HFTM (Modul Projektmanagement).
+Schulprojekt an der HFTM (Modul Projektmanagement), Gruppe aus vier Personen.
+
+**Meine Rolle:** die komplette technische Umsetzung, also Hardware-Aufbau,
+Programmierung der OXOCard, Flask-Bridge und Anbindung an Philips Hue,
+Tests und Fehlersuche sowie das Demo-Video.
+Projektantrag und Präsentation hat das Team gemeinsam erstellt.
 
 ## So funktioniert es
 
