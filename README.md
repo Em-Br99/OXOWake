@@ -9,6 +9,12 @@ Programmierung der OXOCard, Flask-Bridge und Anbindung an Philips Hue,
 Tests und Fehlersuche sowie das Demo-Video.
 Projektantrag und Präsentation hat das Team gemeinsam erstellt.
 
+
+
+https://github.com/user-attachments/assets/88c54f64-e456-47ec-a104-277d53fb1348
+
+
+
 ## So funktioniert es
 
 ```
