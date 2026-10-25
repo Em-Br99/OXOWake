@@ -1,0 +1,9 @@
+# Persoenliche Konfiguration (IP-Adressen, Hue-Schluessel)
+config.py
+.env
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
