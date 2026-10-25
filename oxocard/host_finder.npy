@@ -1,0 +1,20 @@
+# OXOWake - aktiven Flask-Host finden
+hostWin = "http://192.168.x.x:5000/ping"
+hostMac = "http://192.168.y.y:5000/ping"   # zweiter Host, wird nur geprueft wenn der erste nicht antwortet
+
+clear()
+textFont(FONT_ROBOTO_24)
+drawText(10, 10, "Suche Host...")
+update()
+
+if getRequest(hostWin):
+    clear()
+    drawText(10, 10, "Host: Windows")
+elif getRequest(hostMac):
+    clear()
+    drawText(10, 10, "Host: Mac")
+else:
+    clear()
+    drawText(10, 10, "Kein Host aktiv")
+    drawText(10, 45, "Flask laeuft?")
+update()

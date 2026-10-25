@@ -1,0 +1,165 @@
+# ===== OXOWake - Karten-Hauptprogramm =====
+# Analoge Uhr im Normalbetrieb, Sonnenaufgang-Animation waehrend der Weckphase,
+# Piezo-Alarm zur Weckzeit, Stop per Joystick-Select.
+#
+# Vor dem Start: bei den beiden getRequest-Aufrufen 192.168.x.x durch die
+# IP-Adresse des PCs ersetzen, auf dem die Flask-Bridge laeuft.
+
+setTimeZone("CET-1CEST,M3.5.0,M10.5.0/3")   # Schweizer Zeit (Sommer/Winter autom.)
+
+# --- Zifferblatt-Geometrie ---
+const X = 120
+const Y = 120
+const RADIUS = 110
+
+# --- Weckzeit + Vorlauf (zum Testen anpassen) ---
+const WAKE_HOUR = 18
+const WAKE_MINUTE = 50
+const LEAD_MINUTES = 1      # echt = 30; zum Testen z.B. 1
+
+# --- Zustands-Merker (bleiben ueber die Loops erhalten) ---
+sunriseStarted = false
+wakeTriggered = false
+sunriseState = 0             # 0 = noch nicht, 1 = start OK, 2 = start Fehler
+
+
+def zeigeUhr(nowH, nowM, nowS):
+    a:float
+    clear()
+    push()
+    translate(X, Y)
+
+    stroke(0, 0, 150)
+    drawCircle(0, 0, RADIUS)
+    drawCircle(0, 0, RADIUS + 4)
+    fill(250, 250, 250)
+    drawCircle(0, 0, 6)
+
+    # Weckzeit-Zeiger (gelb)
+    a = (360/12) * WAKE_HOUR
+    a = a + (30.0/60.0) * WAKE_MINUTE
+    push()
+    rotate(rad(a))
+    stroke(255, 255, 0)
+    strokeWeight(3)
+    drawLine(0, 0, 0, -0.7*RADIUS)
+    pop()
+    strokeWeight(1)
+
+    # Minutenzeiger
+    a = (360/60) * nowM
+    push()
+    rotate(rad(a))
+    stroke(100, 100, 255)
+    drawLine(0, 0, 0, -0.8*RADIUS)
+    pop()
+
+    # Stundenzeiger
+    a = (360/12) * nowH
+    a = a + (30.0/60.0) * nowM
+    push()
+    rotate(rad(a))
+    stroke(250, 250, 250)
+    strokeWeight(4)
+    drawLine(0, 0, 0, -0.5*RADIUS)
+    pop()
+
+    # Sekundenzeiger
+    a = (360/60) * nowS
+    push()
+    rotate(rad(a))
+    stroke(255, 0, 0)
+    drawLine(0, 0, 0, -RADIUS+5)
+    pop()
+
+    # Ziffern 1-12
+    stroke(255, 255, 255)
+    textFont(FONT_ROBOTO_16)
+    for i in 12:
+        x:float = cos(-PI/3 + ((PI/6)*i))
+        y:float = sin(-PI/3 + ((PI/6)*i))
+        drawTextCentered(x*(RADIUS-18), y*(RADIUS-18), (i+1))
+    pop()
+    update()
+
+
+def zeigeSonnenaufgang(fortschritt):
+    # Himmel: dunkelblau -> orange
+    r = 20 + fortschritt * 2
+    g = 5 + fortschritt / 2
+    b = 60 - fortschritt / 2
+    if r > 255: r = 255
+    if g > 120: g = 120
+    if b < 0: b = 0
+    background(r, g, b)
+
+    # Horizont
+    noStroke()
+    fill(255, 80 + fortschritt, 0)
+    drawRectangle(0, 155, 240, 35)
+
+    # Sonne steigt
+    sonnY = 210 - fortschritt
+    fill(255, 215, 50)
+    drawCircle(120, sonnY, 38)
+
+    # Text
+    stroke(255, 255, 255)
+    textFont(FONT_ROBOTO_24)
+    drawTextCentered(120, 20, "Sonnenaufgang")
+    drawTextCentered(120, 50, fortschritt + "%")
+    update()
+
+
+def onDraw():
+    # aktuelle Zeit
+    nowH = getHour()
+    nowM = getMinute()
+    nowS = getSecond()
+
+    # Minuten seit Mitternacht (fuer die Trigger)
+    nowTotal = nowH*60 + nowM
+    wakeTotal = WAKE_HOUR*60 + WAKE_MINUTE
+    sunriseTotal = wakeTotal - LEAD_MINUTES
+
+    # Sekunden seit Mitternacht (fuer den weichen Fortschritt)
+    nowSec = nowH*3600 + nowM*60 + nowS
+    wakeSec = wakeTotal * 60
+    sunriseSec = sunriseTotal * 60
+
+    # --- Trigger 1: Sonnenaufgang an den PC starten (einmal) ---
+    if sunriseStarted == false and nowTotal >= sunriseTotal and nowTotal < wakeTotal:
+        sunriseStarted = true
+        if getRequest("http://192.168.x.x:5000/sunrise/start"):
+            sunriseState = 1
+        else:
+            sunriseState = 2
+
+    # --- Trigger 2: Wecken (einmal) -> Piezo bis Joystick-Select ---
+    if wakeTriggered == false and nowTotal >= wakeTotal:
+        wakeTriggered = true
+        alarmActive = true
+        while alarmActive:
+            btn:buttons = getButtons()
+            if btn.middle:
+                alarmActive = false
+            if alarmActive:
+                writePWM(C_PIN_01, 2048)   # Ton an (~500 Hz)
+                delay(150)
+                writePWM(C_PIN_01, 0)      # Ton aus
+                delay(150)
+        writePWM(C_PIN_01, 0)
+        getRequest("http://192.168.x.x:5000/sunrise/stop")
+
+    # --- Anzeige je nach Phase ---
+    if nowTotal >= sunriseTotal and nowTotal < wakeTotal:
+        elapsed = nowSec - sunriseSec
+        total = wakeSec - sunriseSec
+        fortschritt = (elapsed * 100) / total
+        if fortschritt < 0: fortschritt = 0
+        if fortschritt > 100: fortschritt = 100
+        zeigeSonnenaufgang(fortschritt)
+    else:
+        zeigeUhr(nowH, nowM, nowS)
+
+    delay(1000)

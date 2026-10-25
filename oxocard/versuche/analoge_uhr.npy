@@ -1,0 +1,68 @@
+const X = 120
+const Y = 120
+const RADIUS = 110
+
+# Weckzeit - hier einstellen
+const WAKE_HOUR = 7
+const WAKE_MINUTE = 0
+
+def onDraw():
+    a:float
+
+    clear()
+    push()
+    translate(X,Y)
+
+    stroke(0,0,150)
+    drawCircle(0,0,RADIUS)
+    drawCircle(0,0,RADIUS+4)
+    fill(250,250,250)
+    drawCircle(0,0,6)
+
+    # Weckzeit-Zeiger (gelb) - zeigt auf die eingestellte Weckzeit
+    a = (360/12) * WAKE_HOUR
+    a = a + (30.0/60.0) * WAKE_MINUTE
+    push()
+    rotate(rad(a))
+    stroke(255,255,0)
+    strokeWeight(3)
+    drawLine(0,0,0,-0.7*RADIUS)
+    pop()
+    strokeWeight(1)                 # zuruecksetzen, sonst wird der Minutenzeiger dick
+
+    a = (360/60) * getMinute()
+    push()
+    rotate(rad(a))
+    stroke(100,100,255)
+    drawLine(0,0,0,-0.8*RADIUS)     # Minuten
+    pop()
+
+    a = (360/12) * getHour()
+    a = a + (30.0/60.0)*getMinute()
+    push()
+    rotate(rad(a))
+    stroke(250,250,250)
+    strokeWeight(4)
+    drawLine(0,0,0,-0.5*RADIUS)     # Stunden
+    pop()
+
+    a = (360/60)*getSecond()
+    push()
+    rotate(rad(a))
+    stroke(255,0,0)
+    drawLine(0,0,0,-RADIUS+5)       # Sekunden
+    pop()
+
+    stroke(255,255,255)
+    textFont(FONT_ROBOTO_16)
+    for i in 12:
+        x:float = cos(-PI/3+((PI/6)*i))
+        y:float = sin(-PI/3+((PI/6)*i))
+        drawTextCentered(x*(RADIUS-18),y*(RADIUS-18),(i+1))
+    pop()
+    update()
+    delay(1000)
+
+    if getButton():
+        if returnToMenu():
+            return

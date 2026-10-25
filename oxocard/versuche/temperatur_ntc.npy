@@ -1,0 +1,40 @@
+const BETA = 4050.0
+const T25 = 298.15
+const R25 = 10000.0
+
+setPrecision(1)
+
+def zeigeTemperatur(t):
+    #Farbe je nach Temperatur
+    if t < 18.0:
+        background(0, 0, 180)       # kalt = blau
+    elif t < 25.0:
+        background(0, 150, 0)       # normal = grün
+    else:
+        background(180, 0, 0)       # warm = rot
+    
+    stroke(255, 255, 255)
+    textFont(FONT_ROBOTO_32)
+    drawTextCentered(120, 70, "Temperatur")
+    textFont(FONT_ROBOTO_48)
+    drawTextCentered(120, 130, t + "°C")
+    update()
+
+setInterval(100)
+
+def onTimer():
+    adcValue = readADC(C_PIN_06, 100)
+    vr = 3.3 * adcValue / 4095
+    vntc = 3.3 - vr
+    if  vntc < 3.2:
+        rntc = (vntc * 2200) / (3.3 - vntc)
+        tk = 1.0 / (ln(rntc/R25) / BETA + (1.0/T25))
+        t = tk - 273.15
+        clear()
+        zeigeTemperatur(t)
+    else:
+        background(0, 0, 0)
+        stroke(255, 0, 0)
+        drawTextCentered(120, 120, "Kein Sensor!")
+        update()
+update()

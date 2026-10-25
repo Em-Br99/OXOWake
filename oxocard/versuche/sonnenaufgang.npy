@@ -1,0 +1,42 @@
+# Sonnenaufgang Animation | OXOcard Connect v2
+
+setTimeZone("CET-1CEST,M3.5.0,M10.5.0/3")
+
+def zeigeSonnenaufgang(fortschritt):
+    # Himmel-Farbe: dunkelblau -> orange
+    r = 20 + fortschritt * 2
+    g = 5  + fortschritt / 2
+    b = 60 - fortschritt / 2
+    if r > 255: r = 255
+    if g > 120: g = 120
+    if b < 0:   b = 0
+
+    background(r, g, b)
+
+    # Horizont-Streifen
+    noStroke()
+    fill(255, 80 + fortschritt, 0)
+    drawRectangle(0, 155, 240, 35)
+
+    # Sonne steigt auf
+    sonnY = 210 - fortschritt
+    fill(255, 215, 50)
+    drawCircle(120, sonnY, 38)
+
+    # Text
+    stroke(255, 255, 255)
+    textFont(FONT_ROBOTO_24)
+    drawTextCentered(120, 20, "Sonnenaufgang")
+    textFont(FONT_ROBOTO_24)
+    drawTextCentered(120, 50, fortschritt + "%")
+    update()
+
+# Loop: fortschritt 0 -> 100
+fortschritt = 0
+
+def onDraw():
+    zeigeSonnenaufgang(fortschritt)
+    fortschritt = fortschritt + 1
+    if fortschritt > 100:
+        fortschritt = 0
+    delay(69)
